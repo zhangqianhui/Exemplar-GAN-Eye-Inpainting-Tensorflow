@@ -70,9 +70,11 @@ class ExemplarGAN(object):
 
     def build_test_model_GAN(self):
 
-        self.x_tilde = self.encode_decode(self.input_img, self.exemplar_images, reuse=False)
+        self.incomplete_img = self.input_img * (1 - self.img_mask)
+        self.x_tilde = self.encode_decode(self.incomplete_img, self.exemplar_images, reuse=False)
         self.t_vars = tf.trainable_variables()
         self.g_vars = [var for var in self.t_vars if 'encode_decode' in var.name]
+        self.saver = tf.train.Saver()
 
     def loss_dis(self, d_real_logits, d_fake_logits):
 
@@ -93,20 +95,20 @@ class ExemplarGAN(object):
         with tf.Session(config=config) as sess:
             sess.run(init)
 
-            self.saver.restore(sess, self.model_path)
+            load_step = 78000
+            self.saver.restore(sess, os.path.join(self.model_path, 'model_{:06d}.ckpt'.format(load_step)))
             batch_num = len(self.data_ob.test_data_list) / self.batch_size
 
             for j in range(batch_num):
 
-                test_data_list, test_ex_list = self.data_ob.getTestNextBatch(batch_num=j, batch_size=self.batch_size,
+                test_data_list, test_ex_list, batch_eye_pos = self.data_ob.getTestNextBatch(batch_num=j, batch_size=self.batch_size,
                                                                                is_shuffle=False)
                 batch_images_array = self.data_ob.getShapeForData(test_data_list, is_test=True)
                 batch_exem_array = self.data_ob.getShapeForData(test_ex_list, is_test=True)
 
                 x_tilde, incomplete_img = sess.run(
                     [self.x_tilde, self.incomplete_img],
-                    feed_dict={self.input_img: batch_images_array, self.exemplar_images: batch_exem_array})
-
+                    feed_dict={self.input_img: batch_images_array, self.exemplar_images: batch_exem_array, self.img_mask: self.get_Mask(batch_eye_pos)})
                 output_concat = np.concatenate(
                     [batch_images_array, batch_exem_array, incomplete_img, x_tilde], axis=0)
                 save_images(output_concat, [output_concat.shape[0] / 8, 8],
@@ -261,29 +263,29 @@ class ExemplarGAN(object):
 
                 #left eye, y
                 mask = np.zeros(shape=[self.output_size, self.output_size, self.channel])
-                scale = current_eye_pos[1] - 10 #current_eye_pos[3] / 2
+                scale = current_eye_pos[1] - 15 #current_eye_pos[3] / 2
 
-                down_scale = current_eye_pos[1] + 10 #current_eye_pos[3] / 2
+                down_scale = current_eye_pos[1] + 15 #current_eye_pos[3] / 2
                 l1_1 =int(scale)
                 u1_1 =int(down_scale)
 
                 #x
-                scale = current_eye_pos[0] - 15 #current_eye_pos[2] / 2
-                down_scale = current_eye_pos[0] + 15 #current_eye_pos[2] / 2
+                scale = current_eye_pos[0] - 20 #current_eye_pos[2] / 2
+                down_scale = current_eye_pos[0] + 20 #current_eye_pos[2] / 2
                 l1_2 = int(scale)
                 u1_2 = int(down_scale)
 
                 mask[l1_1:u1_1, l1_2:u1_2, :] = 1.0
                 #right eye, y
-                scale = current_eye_pos[5] - 10 #current_eye_pos[7] / 2
-                down_scale = current_eye_pos[5] + 10 #current_eye_pos[7] / 2
+                scale = current_eye_pos[5] - 15 #current_eye_pos[7] / 2
+                down_scale = current_eye_pos[5] + 15 #current_eye_pos[7] / 2
 
                 l2_1 = int(scale)
                 u2_1 = int(down_scale)
 
                 #x
-                scale = current_eye_pos[4] - 15 #current_eye_pos[6] / 2
-                down_scale = current_eye_pos[4] + 15 #current_eye_pos[6] / 2
+                scale = current_eye_pos[4] - 20 #current_eye_pos[6] / 2
+                down_scale = current_eye_pos[4] + 20 #current_eye_pos[6] / 2
                 l2_2 = int(scale)
                 u2_2 = int(down_scale)
 
