@@ -53,8 +53,19 @@ python main.py --OPER_FLAG=1
 
 # Our results
 
+## (1)Input image; (2) Reference image; (3) image to in-paint; (4) in-painted image; (5) local real eye region; (6) generated eye region;
+
 <p align="center">
   <img src="/images/our_result.jpg">
 </p>
+
+## Reference code
+
+[Sparsely_Grouped_GAN](https://github.com/zhangqianhui/Sparsely_Grouped_GAN)
+
+[DCGAN tensorflow](https://github.com/carpedm20/DCGAN-tensorflow)
+
+[Spectral Norm tensorflow](https://github.com/taki0112/Spectral_Normalization-Tensorflow)
+
 
 
