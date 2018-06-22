@@ -42,22 +42,9 @@ class ExemplarGAN(object):
         self.x_tilde = self.encode_decode(self.incomplete_img, self.exemplar_images, reuse=False)
         self.local_fake_img = self.x_tilde * self.img_mask
 
-        self.D_real_gan_logits = self.discriminate2(self.input_img, self.exemplar_images, self.local_real_img, spectural_normed=self.use_sp, reuse=False)
-        self.D_fake_gan_logits = self.discriminate2(self.x_tilde, self.exemplar_images, self.local_fake_img, spectural_normed=self.use_sp, reuse=True)
+        self.D_real_gan_logits = self.discriminate(self.input_img, self.exemplar_images, self.local_real_img, spectural_normed=self.use_sp, reuse=False)
+        self.D_fake_gan_logits = self.discriminate(self.x_tilde, self.exemplar_images, self.local_fake_img, spectural_normed=self.use_sp, reuse=True)
 
-        # self.d_gan_loss = tf.reduce_mean(self.D_fake_gan_logits) - tf.reduce_mean(self.D_real_gan_logits)
-        #
-        # self.differences = self.x_tilde - self.input_img
-        # self.alpha = tf.random_uniform(shape=[self.batch_size, 1, 1, 1], minval=0., maxval=1.)
-        # interpolates = self.input_img + self.alpha * self.differences
-        # discri_logits = self.discriminate(interpolates, self.exemplar_images, spectural_normed=self.use_sp, reuse=True)
-        # gradients = tf.gradients(discri_logits, [interpolates])[0]
-        # slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1, 2, 3]))
-        # self.gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
-        #
-        # self.D_loss = self.d_gan_loss + self.lam_gp * self.gradient_penalty
-        #
-        # self.G_gan_loss = - tf.reduce_mean(self.D_fake_gan_logits)
         self.D_loss = self.loss_dis(self.D_real_gan_logits, self.D_fake_gan_logits)
         self.G_gan_loss = self.loss_gen(self.D_fake_gan_logits)
 
@@ -198,27 +185,7 @@ class ExemplarGAN(object):
             save_path = self.saver.save(sess, self.model_path)
             print "Model saved in file: %s" % save_path
 
-    def discriminate(self, x_var, x_exemplar, spectural_normed=False, reuse=False):
-
-        with tf.variable_scope("discriminator") as scope:
-
-            if reuse == True:
-                scope.reuse_variables()
-
-            x_var = tf.concat([x_var, x_exemplar], axis=3)
-            conv1 = lrelu(conv2d(x_var, spectural_normed=spectural_normed, output_dim=64, name='dis_conv1'))
-            conv2 = lrelu(conv2d(conv1, spectural_normed=spectural_normed, output_dim=128, name='dis_conv2'))
-            conv3 = lrelu(conv2d(conv2, spectural_normed=spectural_normed, output_dim=256, name='dis_conv3'))
-            conv4 = lrelu(conv2d(conv3, spectural_normed=spectural_normed, output_dim=512, name='dis_conv4'))
-            bottleneck = lrelu(conv2d(conv4, spectural_normed=spectural_normed, output_dim=1024, name='dis_conv5'))
-
-            gan_logits = conv2d(bottleneck, spectural_normed=spectural_normed,
-                                output_dim=1, k_h=2,
-                                k_w=2, d_w=1, d_h=1, padding='VALID', name='dis_conv8')
-
-            return gan_logits
-
-    def discriminate2(self, x_var, x_exemplar, local_x_var, spectural_normed=False, reuse=False):
+    def discriminate(self, x_var, x_exemplar, local_x_var, spectural_normed=False, reuse=False):
 
         with tf.variable_scope("discriminator") as scope:
 
