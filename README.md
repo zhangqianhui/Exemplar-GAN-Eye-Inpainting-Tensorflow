@@ -1,3 +1,16 @@
 # Exemplar_GAN_Eye_Inpainting
-The tensorflow reference implement of [Eye In-Painting with Exemplar Generative Adversarial Networks](https://arxiv.org/abs/1712.03999)  [Paper Introduction](https://github.com/bdol/exemplar_gans).
+The tensorflow reference implement of [Eye In-Painting with Exemplar Generative Adversarial Networks](https://arxiv.org/abs/1712.03999)  
 
+# Introduction
+
+[Paper Introduction](https://github.com/bdol/exemplar_gans).
+
+<p align="center">
+  <img src="/images/paper_result.jpg">
+</p>
+
+## Differences with the original paper.
+
+- Because the origin paper does't provide the details of model, this implement use network architecture and hyperparamters from [SG-GAN](https://github.com/zhangqianhui/Sparsely_Grouped_GAN)(Using adapted residual image learning and use spectral norm)
+
+- Just use refernece image as the exemplar, not code.
