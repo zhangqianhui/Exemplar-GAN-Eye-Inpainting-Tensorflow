@@ -5,6 +5,14 @@ The tensorflow reference implement of [Eye In-Painting with Exemplar Generative 
 
 [Paper Introduction](https://github.com/bdol/exemplar_gans).
 
+## Network Architecture
+
+<p align="center">
+  <img src="/images/net.jpg">
+</p>
+
+## Paper result
+
 <p align="center">
   <img src="/images/paper_result.jpg">
 </p>
@@ -18,5 +26,35 @@ The tensorflow reference implement of [Eye In-Painting with Exemplar Generative 
 ## Dependencies
 * [Python 2.7](https://www.python.org/download/releases/2.7/)
 * [Tensorflow 1.4+](https://github.com/tensorflow/tensorflow)
+
+
+## Usage
+
+- Clone this repo:
+```bash
+git clone https://github.com/zhangqianhui/SG_GAN_tensorflow.git
+cd SG_GAN_tensorflow
+```
+- Download the CeleA-ID dataset
+
+You can download CelebA-ID Benchmark dataset from [Google drive](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAB06FXaQRUNtjW9ntaoPGvCa?dl=0) or download according to the [Dataset](https://github.com/bdol/exemplar_gans#celeb-id-benchmark-dataset) 
+
+and unzip CeleA-ID into a directory. 
+
+- Train the model using the default parameter
+```bash
+python main.py --OPER_FLAG=0
+```
+- Test the model 
+
+```bash
+python main.py --OPER_FLAG=1
+```
+
+# Our results
+
+<p align="center">
+  <img src="/images/our_result.jpg">
+</p>
 
 
