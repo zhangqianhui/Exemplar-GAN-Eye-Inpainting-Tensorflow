@@ -3,7 +3,7 @@ The tensorflow reference implement of [Eye In-Painting with Exemplar Generative 
 
 # Introduction
 
-[Paper Introduction](https://github.com/bdol/exemplar_gans).
+[Paper Introduction](https://github.com/bdol/exemplar_gans#introduction).
 
 ## Network Architecture
 
