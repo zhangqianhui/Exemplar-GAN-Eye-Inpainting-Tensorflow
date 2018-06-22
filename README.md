@@ -32,23 +32,22 @@ The tensorflow reference implement of [Eye In-Painting with Exemplar Generative 
 
 - Clone this repo:
 ```bash
-git clone https://github.com/zhangqianhui/SG_GAN_tensorflow.git
-cd SG_GAN_tensorflow
+git clone https://github.com/zhangqianhui/Exemplar_GAN_Eye_Inpainting.git
 ```
 - Download the CeleA-ID dataset
 
-You can download CelebA-ID Benchmark dataset from [Google drive](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAB06FXaQRUNtjW9ntaoPGvCa?dl=0) or download according to the [Dataset](https://github.com/bdol/exemplar_gans#celeb-id-benchmark-dataset) 
+You can download CelebA-ID Benchmark dataset from [Google drive](https://drive.google.com/open?id=1vvMsDlvnsWH4S4bcXN2-o23BctqIAI5p) or download according to the [Dataset](https://github.com/bdol/exemplar_gans#celeb-id-benchmark-dataset) 
 
 and unzip CeleA-ID into a directory. 
 
 - Train the model using the default parameter
 ```bash
-python main.py --OPER_FLAG=0
+python main.py --OPER_FLAG=0 --path your_path
 ```
 - Test the model 
 
 ```bash
-python main.py --OPER_FLAG=1
+python main.py --OPER_FLAG=1 --path your_path
 ```
 
 # Our results
