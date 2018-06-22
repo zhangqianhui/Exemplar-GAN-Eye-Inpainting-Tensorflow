@@ -9,8 +9,14 @@ The tensorflow reference implement of [Eye In-Painting with Exemplar Generative 
   <img src="/images/paper_result.jpg">
 </p>
 
-## Differences with the original paper.
+# Differences with the original paper.
 
 - Because the origin paper does't provide the details of model, this implement use network architecture and hyperparamters from [SG-GAN](https://github.com/zhangqianhui/Sparsely_Grouped_GAN)(Using adapted residual image learning and use spectral norm)
 
 - Just use refernece image as the exemplar, not code.
+
+## Dependencies
+* [Python 2.7](https://www.python.org/download/releases/2.7/)
+* [Tensorflow 1.4+](https://github.com/tensorflow/tensorflow)
+
+
