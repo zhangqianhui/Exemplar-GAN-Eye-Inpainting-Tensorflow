@@ -205,7 +205,6 @@ class ExemplarGAN(object):
 
             conv = local_x_var
             for i in range(5):
-
                 output_dim = 64 * (i + 1)
                 conv = lrelu(conv2d(conv, spectural_normed=spectural_normed, output_dim=output_dim, name='dis_conv_2_{}'.format(i)))
 
