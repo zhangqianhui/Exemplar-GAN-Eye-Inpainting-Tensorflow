@@ -23,6 +23,8 @@ The tensorflow reference implement of [Eye In-Painting with Exemplar Generative 
 
 - Just use refernece image as the exemplar, not code.
 
+- Our model trained using 256x256 pixl, not 128x128 mentioned in the original paper.
+
 ## Dependencies
 * [Python 2.7](https://www.python.org/download/releases/2.7/)
 * [Tensorflow 1.4+](https://github.com/tensorflow/tensorflow)
@@ -47,7 +49,7 @@ python main.py --OPER_FLAG=0 --path your_path
 - Test the model 
 
 ```bash
-python main.py --OPER_FLAG=1 --path your_path
+python main.py --OPER_FLAG=1 --path your_path --test_step= your model_name
 ```
 
 # Our results
@@ -58,6 +60,10 @@ python main.py --OPER_FLAG=1 --path your_path
   <img src="/images/our_result.jpg">
 </p>
 
+<p align="center">
+ <img src="/images/our_result2.jpg">
+</p>
+
 ## Reference code
 
 [Sparsely_Grouped_GAN](https://github.com/zhangqianhui/Sparsely_Grouped_GAN)
@@ -65,6 +71,5 @@ python main.py --OPER_FLAG=1 --path your_path
 [DCGAN tensorflow](https://github.com/carpedm20/DCGAN-tensorflow)
 
 [Spectral Norm tensorflow](https://github.com/taki0112/Spectral_Normalization-Tensorflow)
-
 
 
