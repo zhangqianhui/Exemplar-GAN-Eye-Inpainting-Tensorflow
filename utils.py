@@ -3,6 +3,7 @@ import errno
 import numpy as np
 import scipy
 import scipy.misc
+import json
 
 def mkdir_p(path):
     try:
@@ -84,143 +85,216 @@ def inverse_transform(image, is_ouput=False):
         print result
     return result
 
-def read_image_list_for_Eyes(category, is_test=False):
+log_interval = 1000
 
-    filenames = []
-    exemplar_names = []
-    eye_pos_str = []
-    print("list file")
-    list = os.listdir(category)
-    for file in list:
+def read_image_list_for_Eyes(category):
 
-        if '-1' in file:
+    json_cat = category + "/data.json"
+    with open(json_cat, 'r') as f:
+        data = json.load(f)
 
-            flag = 1
+    all_iden_info = []
+    all_ref_info = []
 
+    test_all_iden_info = []
+    test_all_ref_info = []
 
-            if len(file.split('-', 11)) == 11:
-                identity = file.split('-', 11)[0] + "-" + file.split('-', 11)[1]
+    #c: id
+    #k: name of identity
+    #v: details.
+    for c, (k, v) in enumerate(data.items()):
 
-                eye_pos = []
-                for i in range(3, 11):
-                    eye_pos.append(int((file.split('-', 11)[i]).split('.', 2)[0]))
+        identity_info = []
+        is_close = False
+        if c % log_interval == 0:
+            print('Processed {}/{}'.format(c, len(data)))
 
-                eye_pos_str.append(eye_pos)
+        if len(v) < 2:
+            continue
 
-                filenames.append(category + "/" + file)
+        for i in range(len(v)):
 
-            elif len(file.split('-', 10)) == 10:
+            if is_close or v[i]['opened'] < 0.60:
+                is_close = True
 
-                identity = file.split('-', 10)[0]
-                eye_pos = []
-                for i in range(2, 10):
-                    eye_pos.append(int((file.split('-', 10)[i]).split('.', 2)[0]))
-                eye_pos_str.append(eye_pos)
+            str_info = str(v[i]['filename']) + "_"
 
-                filenames.append(category + "/" + file)
-
+            if 'eye_left' in v[i] and v[i]['eye_left'] != None:
+                str_info += str(v[i]['eye_left']['y']) + "_"
+                str_info += str(v[i]['eye_left']['x']) + "_"
             else:
+                str_info += str(0) + "_"
+                str_info += str(0) + "_"
 
-                flag = 0
+            if 'box_left' in v[i] and v[i]['box_left'] != None:
+                str_info += str(v[i]['box_left']['h']) + "_"
+                str_info += str(v[i]['box_left']['w']) + "_"
+            else:
+                str_info += str(0) + "_"
+                str_info += str(0) + "_"
 
-            if flag == 1:
+            if 'eye_right' in v[i] and v[i]['eye_right'] != None:
+                str_info += str(v[i]['eye_right']['y']) + "_"
+                str_info += str(v[i]['eye_right']['x']) + "_"
+            else:
+                str_info += str(0) + "_"
+                str_info += str(0) + "_"
 
-                exemplar_1 = category + "/" + identity + "-2-0-0-0-0-0-0-0-0.jpg"
-                exemplar_2 = category + "/" + identity + "-3-0-0-0-0-0-0-0-0.jpg"
-                exemplar_3 = category + "/" + identity + "-4-0-0-0-0-0-0-0-0.jpg"
-                exemplar_4 = category + "/" + identity + "-5-0-0-0-0-0-0-0-0.jpg"
+            if 'box_right' in v[i] and v[i]['box_right'] != None:
+                str_info += str(v[i]['box_right']['h']) + "_"
+                str_info += str(v[i]['box_right']['w'])
+            else:
+                str_info += str(0) + "_"
+                str_info += str(0)
 
-                if os.path.exists(exemplar_1):
-                    exemplar_names.append(exemplar_1)
+            identity_info.append(str_info)
 
-                elif os.path.exists(exemplar_2):
-                    exemplar_names.append(exemplar_2)
-                elif os.path.exists(exemplar_3):
-                    exemplar_names.append(exemplar_3)
-                elif os.path.exists(exemplar_4):
-                    exemplar_names.append(exemplar_4)
-                else:
+        if is_close == False:
 
-                    filenames.remove(category + "/" + file)
-                    eye_pos_str.remove(eye_pos)
+            for j in range(len(v)):
 
-    print "len", len(filenames), len(exemplar_names), len(eye_pos_str)
-    assert len(exemplar_names) == len(filenames)
+                first_n = np.random.randint(0, len(v), size=1)[0]
+                all_iden_info.append(identity_info[first_n])
+                middle_value = identity_info[first_n]
+                identity_info.remove(middle_value)
 
-    if is_test:
-        return filenames[0:1000], exemplar_names[0:1000], eye_pos_str[0:1000]
-    else:
-        return filenames[1000:-1], exemplar_names[1000:-1], eye_pos_str[1000:-1]
+                second_n = np.random.randint(0, len(v) - 1, size=1)[0]
+                all_ref_info.append(identity_info[second_n])
+
+                identity_info.append(middle_value)
+
+        else:
+
+            first_n = np.random.randint(0, len(v), size=1)[0]
+            test_all_iden_info.append(identity_info[first_n])
+            identity_info.remove(identity_info[first_n])
+
+            second_n = np.random.randint(0, len(v) - 1, size=1)[0]
+            test_all_ref_info.append(identity_info[second_n])
+
+    assert len(all_iden_info) == len(all_ref_info)
+    assert len(test_all_iden_info) == len(test_all_ref_info)
+
+    print "train_data", len(all_iden_info)
+    print "test_data", len(test_all_iden_info)
+
+    return all_iden_info, all_ref_info, test_all_iden_info, test_all_ref_info
 
 class Eyes(object):
 
     def __init__(self, image_path):
-
         self.dataname = "Eyes"
-        self.image_size = 128
+        self.image_size = 256
         self.channel = 3
+        self.image_path = image_path
         self.dims = self.image_size*self.image_size
         self.shape = [self.image_size, self.image_size, self.channel]
-        self.train_data_list, self.train_data_list2, self.eye_pos_str = self.load_Eyes(image_path)
-        self.test_data_list, self.test_data_list2, _ = self.load_test_Eyes(image_path)
+        self.train_images_name, self.train_eye_pos_name, self.train_ref_images_name, \
+            self.test_images_name, self.test_eye_pos_name, self.test_ref_images_name = self.load_Eyes(image_path)
 
     def load_Eyes(self, image_path):
 
-        # get the list of image path
-        images_list, image_list2, eye_pos_str = read_image_list_for_Eyes(image_path, is_test=False)
+        images_list, images_ref_list, test_images_list, test_images_ref_list = read_image_list_for_Eyes(image_path)
 
-        return images_list, image_list2, eye_pos_str
+        train_images_name = []
+        train_eye_pos_name = []
+        train_ref_images_name = []
 
-    def load_test_Eyes(self, image_path):
+        test_images_name = []
+        test_eye_pos_name = []
+        test_ref_images_name = []
 
-        # get the list of image path
-        images_list, image_list2, eye_pos_str = read_image_list_for_Eyes(image_path, is_test=True)
-        return images_list, image_list2, eye_pos_str
+        #train
+        for images_info_str in images_list:
+
+            eye_pos = []
+            image_name, left_eye_x, left_eye_y, left_eye_h, left_eye_w, right_eye_x, right_eye_y,\
+                right_eye_h, right_eye_w = images_info_str.split('_', 9)
+            eye_pos.append((int(left_eye_x), int(left_eye_y), int(left_eye_h), int(left_eye_w), int(right_eye_x),
+                            int(right_eye_y), int(right_eye_h), int(right_eye_w)))
+            image_name = os.path.join(self.image_path, image_name)
+
+            train_images_name.append(image_name)
+            train_eye_pos_name.append(eye_pos)
+
+        for images_info_str in images_ref_list:
+
+            image_name = images_info_str.split('_', 9)[0]
+            image_name = os.path.join(self.image_path, image_name)
+            train_ref_images_name.append(image_name)
+
+        for images_info_str in test_images_list:
+
+            eye_pos = []
+            image_name, left_eye_x, left_eye_y, left_eye_h, left_eye_w, right_eye_x, right_eye_y, \
+            right_eye_h, right_eye_w = images_info_str.split('_', 9)
+            eye_pos.append(
+                (int(left_eye_x), int(left_eye_y), int(left_eye_h), int(left_eye_w), int(right_eye_x),
+                 int(right_eye_y), int(right_eye_h), int(right_eye_w)))
+            image_name = os.path.join(self.image_path, image_name)
+
+            test_images_name.append(image_name)
+            test_eye_pos_name.append(eye_pos)
+
+        for images_info_str in test_images_ref_list:
+
+            image_name = images_info_str.split('_', 9)[0]
+            image_name = os.path.join(self.image_path, image_name)
+            test_ref_images_name.append(image_name)
+
+        assert len(train_images_name) == len(train_eye_pos_name) == len(train_ref_images_name)
+        assert len(test_images_name) == len(test_eye_pos_name) == len(test_ref_images_name)
+
+        return train_images_name, train_eye_pos_name, train_ref_images_name, \
+               test_images_name, test_eye_pos_name, test_ref_images_name
 
     def getShapeForData(self, filenames, is_test=False):
 
-        array = [get_image(batch_file, 108, is_crop=False, resize_w=128,
+        array = [get_image(batch_file, 108, is_crop=False, resize_w=256,
                            is_grayscale=False, is_test=is_test) for batch_file in filenames]
         sample_images = np.array(array)
-        # return sub_image_mean(array , IMG_CHANNEL)
         return sample_images
 
     def getNextBatch(self, batch_num=0, batch_size=64, is_shuffle=True):
 
-        ro_num = len(self.train_data_list) / batch_size
+        ro_num = len(self.train_images_name) / batch_size
         if batch_num % ro_num == 0 and is_shuffle:
 
-            length = len(self.train_data_list)
+            length = len(self.train_images_name)
             perm = np.arange(length)
             np.random.shuffle(perm)
 
-            self.train_data_list = np.array(self.train_data_list)
-            self.train_data_list = self.train_data_list[perm]
+            self.train_images_name = np.array(self.train_images_name)
+            self.train_images_name = self.train_images_name[perm]
 
-            self.train_data_list2 = np.array(self.train_data_list2)
-            self.train_data_list2 = self.train_data_list2[perm]
+            self.train_eye_pos_name = np.array(self.train_eye_pos_name)
+            self.train_eye_pos_name = self.train_eye_pos_name[perm]
 
-            self.eye_pos_str = np.array(self.eye_pos_str)
-            self.eye_pos_str = self.eye_pos_str[perm]
+            self.train_ref_images_name = np.array(self.train_ref_images_name)
+            self.train_ref_images_name = self.train_ref_images_name[perm]
 
-        return self.train_data_list[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
-               self.train_data_list2[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
-               self.eye_pos_str[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]
+        return self.train_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
+               self.train_eye_pos_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
+               self.train_ref_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]
 
     def getTestNextBatch(self, batch_num=0, batch_size=64, is_shuffle=True):
 
-        ro_num = len(self.test_data_list) / batch_size
+        ro_num = len(self.test_images_name) / batch_size
         if batch_num == 0 and is_shuffle:
 
-            length = len(self.test_data_list)
+            length = len(self.test_images_name)
             perm = np.arange(length)
             np.random.shuffle(perm)
 
-            self.test_data_list = np.array(self.test_data_list)
-            self.test_data_list = self.test_data_list[perm]
+            self.test_images_name = np.array(self.test_images_name)
+            self.test_images_name = self.test_images_name[perm]
 
-            self.test_data_list2 = np.array(self.test_data_list2)
-            self.test_data_list2 = self.test_data_list2[perm]
+            self.test_eye_pos_name = np.array(self.test_eye_pos_name)
+            self.test_eye_pos_name = self.test_eye_pos_name[perm]
 
-        return self.test_data_list[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
-               self.test_data_list2[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]
+            self.test_ref_images_name = np.array(self.test_ref_images_name)
+            self.test_ref_images_name = self.test_ref_images_name[perm]
+
+        return self.test_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
+               self.test_eye_pos_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
+                self.test_ref_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]

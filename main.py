@@ -1,19 +1,19 @@
 import tensorflow as tf
-from utils import mkdir_p
-from utils import Eyes
+from utils import mkdir_p, Eyes
 from ExemplarGAN import ExemplarGAN
 
 import os
-os.environ['CUDA_VISIBLE_DEVICES']= '0'
+os.environ['CUDA_VISIBLE_DEVICES']= '13'
 
 flags = tf.app.flags
-flags.DEFINE_integer("OPER_FLAG", 0, "flag of opertion, test or train")
-flags.DEFINE_string("OPER_NAME", "Experiment_6_21_3", "name of the experiment")
+flags.DEFINE_integer("OPER_FLAG", 1, "flag of opertion, test or train")
+flags.DEFINE_string("OPER_NAME", "Experiment_6_21_5", "name of the experiment")
 flags.DEFINE_string("path", '?', "path of training data")
-flags.DEFINE_integer("batch_size", 8, "size of single batch")
+flags.DEFINE_integer("batch_size", 4, "size of single batch")
 flags.DEFINE_integer("max_iters", 100000, "number of total iterations for G")
 flags.DEFINE_integer("learn_rate", 0.0001, "learning rate for g and d")
-flags.DEFINE_boolean("is_load", False, "whether loading the pretraining model")
+flags.DEFINE_integer("test_step", 16000, "loading setp model for testing")
+flags.DEFINE_boolean("is_load", False, "whether loading the pretraining model for training")
 flags.DEFINE_boolean("use_sp", True, "whether using spectral normalization")
 flags.DEFINE_integer("lam_recon", 1, "weight for recon loss")
 flags.DEFINE_integer("lam_gp", 10, "weight for gradient penalty")
@@ -24,6 +24,8 @@ flags.DEFINE_integer("n_critic", 1, "iters of g for every d")
 FLAGS = flags.FLAGS
 
 if __name__ == "__main__":
+
+    print FLAGS.OPER_FLAG
 
     root_log_dir = "./outpout/log/logs{}".format(FLAGS.OPER_FLAG)
     checkpoint_dir = "./outpout/model_gan{}/".format(FLAGS.OPER_NAME)
@@ -48,6 +50,6 @@ if __name__ == "__main__":
     if FLAGS.OPER_FLAG == 1:
 
         semiGan.build_test_model_GAN()
-        semiGan.test()
+        semiGan.test(test_step=FLAGS.test_step)
 
 

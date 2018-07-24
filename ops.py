@@ -150,7 +150,6 @@ def spectral_norm(w, iteration= 1):
     w_shape = w.shape.as_list()
     w = tf.reshape(w, [-1, w_shape[-1]])
     # w = tf.reshape(w, [1, w.shape.as_list()[0] * w.shape.as_list()[1]])
-    print  "w", w.shape
 
     u = tf.get_variable("u", [1, w.shape.as_list()[-1]], initializer=tf.truncated_normal_initializer(), trainable=False)
     u_hat = u
