@@ -23,7 +23,7 @@ The tensorflow reference implement of [Eye In-Painting with Exemplar Generative 
 
 - Just use refernece image as the exemplar, not code.
 
-- Our model trained using 256x256 pixel, not 128x128 mentioned in the original paper.
+- Our model trained using 256x256 pixels, not 128x128 mentioned in the original paper.
 
 ## Dependencies
 * [Python 2.7](https://www.python.org/download/releases/2.7/)
