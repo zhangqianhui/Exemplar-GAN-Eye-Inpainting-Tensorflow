@@ -105,7 +105,10 @@ def read_image_list_for_Eyes(category):
     for c, (k, v) in enumerate(data.items()):
 
         identity_info = []
+
         is_close = False
+        is_close_id = 0
+
         if c % log_interval == 0:
             print('Processed {}/{}'.format(c, len(data)))
 
@@ -114,8 +117,10 @@ def read_image_list_for_Eyes(category):
 
         for i in range(len(v)):
 
-            if is_close or v[i]['opened'] < 0.60:
+            if is_close or v[i]['opened'] is None or v[i]['opened'] < 0.60:
                 is_close = True
+            if v[i]['opened'] < 0.60:
+                is_close_id = i
 
             str_info = str(v[i]['filename']) + "_"
 
@@ -165,9 +170,16 @@ def read_image_list_for_Eyes(category):
 
         else:
 
-            first_n = np.random.randint(0, len(v), size=1)[0]
-            test_all_iden_info.append(identity_info[first_n])
-            identity_info.remove(identity_info[first_n])
+            #append twice with different reference result.
+
+            middle_value = identity_info[is_close_id]
+            test_all_iden_info.append(middle_value)
+            identity_info.remove(middle_value)
+
+            second_n = np.random.randint(0, len(v) - 1, size=1)[0]
+            test_all_ref_info.append(identity_info[second_n])
+
+            test_all_iden_info.append(middle_value)
 
             second_n = np.random.randint(0, len(v) - 1, size=1)[0]
             test_all_ref_info.append(identity_info[second_n])
@@ -189,8 +201,8 @@ class Eyes(object):
         self.image_path = image_path
         self.dims = self.image_size*self.image_size
         self.shape = [self.image_size, self.image_size, self.channel]
-        self.train_images_name, self.train_eye_pos_name, self.train_ref_images_name, \
-            self.test_images_name, self.test_eye_pos_name, self.test_ref_images_name = self.load_Eyes(image_path)
+        self.train_images_name, self.train_eye_pos_name, self.train_ref_images_name, self.train_ref_pos_name, \
+            self.test_images_name, self.test_eye_pos_name, self.test_ref_images_name, self.test_ref_pos_name = self.load_Eyes(image_path)
 
     def load_Eyes(self, image_path):
 
@@ -199,10 +211,12 @@ class Eyes(object):
         train_images_name = []
         train_eye_pos_name = []
         train_ref_images_name = []
+        train_ref_pos_name = []
 
         test_images_name = []
         test_eye_pos_name = []
         test_ref_images_name = []
+        test_ref_pos_name = []
 
         #train
         for images_info_str in images_list:
@@ -219,9 +233,16 @@ class Eyes(object):
 
         for images_info_str in images_ref_list:
 
-            image_name = images_info_str.split('_', 9)[0]
+            eye_pos = []
+            image_name, left_eye_x, left_eye_y, left_eye_h, left_eye_w, right_eye_x, right_eye_y, \
+                right_eye_h, right_eye_w = images_info_str.split('_', 9)
+
+            eye_pos.append((int(left_eye_x), int(left_eye_y), int(left_eye_h), int(left_eye_w), int(right_eye_x),
+                            int(right_eye_y), int(right_eye_h), int(right_eye_w)))
+
             image_name = os.path.join(self.image_path, image_name)
             train_ref_images_name.append(image_name)
+            train_ref_pos_name.append(eye_pos)
 
         for images_info_str in test_images_list:
 
@@ -238,15 +259,21 @@ class Eyes(object):
 
         for images_info_str in test_images_ref_list:
 
-            image_name = images_info_str.split('_', 9)[0]
+            eye_pos = []
+            image_name, left_eye_x, left_eye_y, left_eye_h, left_eye_w, right_eye_x, right_eye_y, \
+            right_eye_h, right_eye_w = images_info_str.split('_', 9)
+            eye_pos.append(
+                (int(left_eye_x), int(left_eye_y), int(left_eye_h), int(left_eye_w), int(right_eye_x),
+                 int(right_eye_y), int(right_eye_h), int(right_eye_w)))
             image_name = os.path.join(self.image_path, image_name)
             test_ref_images_name.append(image_name)
+            test_ref_pos_name.append(eye_pos)
 
-        assert len(train_images_name) == len(train_eye_pos_name) == len(train_ref_images_name)
-        assert len(test_images_name) == len(test_eye_pos_name) == len(test_ref_images_name)
+        assert len(train_images_name) == len(train_eye_pos_name) == len(train_ref_images_name) == len(train_ref_pos_name)
+        assert len(test_images_name) == len(test_eye_pos_name) == len(test_ref_images_name) == len(test_ref_pos_name)
 
-        return train_images_name, train_eye_pos_name, train_ref_images_name, \
-               test_images_name, test_eye_pos_name, test_ref_images_name
+        return train_images_name, train_eye_pos_name, train_ref_images_name, train_ref_pos_name, \
+               test_images_name, test_eye_pos_name, test_ref_images_name, test_ref_pos_name
 
     def getShapeForData(self, filenames, is_test=False):
 
@@ -273,9 +300,13 @@ class Eyes(object):
             self.train_ref_images_name = np.array(self.train_ref_images_name)
             self.train_ref_images_name = self.train_ref_images_name[perm]
 
+            self.train_ref_pos_name = np.array(self.train_ref_pos_name)
+            self.train_ref_pos_name = self.train_ref_pos_name[perm]
+
         return self.train_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
                self.train_eye_pos_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
-               self.train_ref_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]
+               self.train_ref_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
+                self.train_ref_pos_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]
 
     def getTestNextBatch(self, batch_num=0, batch_size=64, is_shuffle=True):
 
@@ -295,6 +326,10 @@ class Eyes(object):
             self.test_ref_images_name = np.array(self.test_ref_images_name)
             self.test_ref_images_name = self.test_ref_images_name[perm]
 
+            self.test_ref_pos_name = np.array(self.test_ref_pos_name)
+            self.test_ref_pos_name = self.test_ref_pos_name[perm]
+
         return self.test_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
                self.test_eye_pos_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
-                self.test_ref_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]
+               self.test_ref_images_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size], \
+               self.test_ref_pos_name[(batch_num % ro_num) * batch_size: (batch_num % ro_num + 1) * batch_size]
