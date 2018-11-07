@@ -2,17 +2,19 @@ import tensorflow as tf
 from utils import mkdir_p, Eyes
 from ExemplarGAN import ExemplarGAN
 
+#6_21_6, add the region of mask; add the two mask as the input of generator
+
 import os
-os.environ['CUDA_VISIBLE_DEVICES']= '13'
+os.environ['CUDA_VISIBLE_DEVICES']= '12'
 
 flags = tf.app.flags
 flags.DEFINE_integer("OPER_FLAG", 1, "flag of opertion, test or train")
-flags.DEFINE_string("OPER_NAME", "Experiment_6_21_5", "name of the experiment")
-flags.DEFINE_string("path", '?', "path of training data")
+flags.DEFINE_string("OPER_NAME", "Experiment_6_21_6", "name of the experiment")
+flags.DEFINE_string("path", '/mnt/sata/jichao/dataset/celeb_id_aligned/', "path of training data")
 flags.DEFINE_integer("batch_size", 4, "size of single batch")
 flags.DEFINE_integer("max_iters", 100000, "number of total iterations for G")
 flags.DEFINE_integer("learn_rate", 0.0001, "learning rate for g and d")
-flags.DEFINE_integer("test_step", 16000, "loading setp model for testing")
+flags.DEFINE_integer("test_step", 34000, "loading setp model for testing")
 flags.DEFINE_boolean("is_load", False, "whether loading the pretraining model for training")
 flags.DEFINE_boolean("use_sp", True, "whether using spectral normalization")
 flags.DEFINE_integer("lam_recon", 1, "weight for recon loss")
@@ -37,19 +39,17 @@ if __name__ == "__main__":
 
     m_ob = Eyes(FLAGS.path)
 
-    semiGan = ExemplarGAN(batch_size= FLAGS.batch_size, max_iters= FLAGS.max_iters,
+    eGan = ExemplarGAN(batch_size= FLAGS.batch_size, max_iters= FLAGS.max_iters,
                       model_path= checkpoint_dir, data_ob= m_ob, sample_path= sample_path , log_dir= root_log_dir,
                       learning_rate=  FLAGS.learn_rate, is_load=FLAGS.is_load, lam_recon=FLAGS.lam_recon, lam_gp=FLAGS.lam_gp,
                     use_sp=FLAGS.use_sp, beta1=FLAGS.beta1, beta2=FLAGS.beta2, n_critic=FLAGS.n_critic)
 
     if FLAGS.OPER_FLAG == 0:
-
-        semiGan.build_model_GAN()
-        semiGan.train()
+        eGan.build_model_GAN()
+        eGan.train()
 
     if FLAGS.OPER_FLAG == 1:
-
-        semiGan.build_test_model_GAN()
-        semiGan.test(test_step=FLAGS.test_step)
+        eGan.build_test_model_GAN()
+        eGan.test(test_step=FLAGS.test_step)
 
 
