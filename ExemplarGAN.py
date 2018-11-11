@@ -197,7 +197,7 @@ class ExemplarGAN(object):
 
             conv = tf.concat([x_var, x_exemplar], axis=3)
             for i in range(5):
-                output_dim = np.minimum(64 * np.power(i + 1, 2), 512)
+                output_dim = np.minimum(64 * np.power(2, i+1), 512)
                 conv = lrelu(conv2d(conv, spectural_normed=spectural_normed, output_dim=output_dim, name='dis_conv_{}'.format(i)))
 
             conv = tf.reshape(conv, shape=[self.batch_size, conv.shape[1] * conv.shape[2] * conv.shape[3]])
@@ -205,7 +205,7 @@ class ExemplarGAN(object):
 
             conv = local_x_var
             for i in range(5):
-                output_dim = np.minimum(64 * np.power(i + 1, 2), 512)
+                output_dim = np.minimum(64 * np.power(2, i+1), 512)
                 conv = lrelu(conv2d(conv, spectural_normed=spectural_normed, output_dim=output_dim, name='dis_conv_2_{}'.format(i)))
 
             conv = tf.reshape(conv, shape=[self.batch_size, conv.shape[1] * conv.shape[2] * conv.shape[3]])
