@@ -16,7 +16,7 @@ def conv2d(input_, output_dim,
     with tf.variable_scope(name):
 
         w = tf.get_variable('w', [k_h, k_w, input_.get_shape()[-1], output_dim],
-                            initializer=tf.truncated_normal_initializer(stddev=stddev))
+                            initializer=tf.random_normal_initializer(stddev=stddev))
         if spectural_normed:
             conv = tf.nn.conv2d(input_, spectral_norm(w), strides=[1, d_h, d_w, 1], padding=padding)
         else:
@@ -65,7 +65,7 @@ def de_conv(input_, output_shape,
     with tf.variable_scope(name):
         # filter : [height, width, output_channels, in_channels]
         w = tf.get_variable('w', [k_h, k_w, output_shape[-1], input_.get_shape()[-1]], dtype=tf.float32,
-                            initializer=tf.truncated_normal_initializer(stddev=stddev))
+                            initializer=tf.random_normal_initializer(stddev=stddev))
         try:
             deconv = tf.nn.conv2d_transpose(input_, w, output_shape=output_shape,
                                             strides=[1, d_h, d_w, 1])
