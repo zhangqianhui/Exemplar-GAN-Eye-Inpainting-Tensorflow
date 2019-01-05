@@ -74,4 +74,9 @@ python main.py --OPER_FLAG=1 --path your_path --test_step= your model_name
 
 [Spectral Norm tensorflow](https://github.com/taki0112/Spectral_Normalization-Tensorflow)
 
+## Similar project
+
+[Eye_Rotation_GAN](https://github.com/zhangqianhui/Eye_Rotation_GAN)
+
+
 
