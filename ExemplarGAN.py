@@ -178,7 +178,7 @@ class ExemplarGAN(object):
 
                     x_tilde, incomplete_img, local_real, local_fake = sess.run([self.x_tilde, self.incomplete_img, self.local_real_img, self.local_fake_img], feed_dict=f_d)
                     output_concat = np.concatenate([batch_images_array, batch_exem_array, incomplete_img, x_tilde, local_real, local_fake], axis=0)
-                    save_images(output_concat, [output_concat.shape[0]/8, 8],
+                    save_images(output_concat, [output_concat.shape[0]/self.batch_size, self.batch_size],
                                             '{}/{:02d}_output.jpg'.format(self.sample_path, step))
                 if np.mod(step, 2000) == 0:
                     self.saver.save(sess, os.path.join(self.model_path, 'model_{:06d}.ckpt'.format(step)))
