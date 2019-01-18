@@ -10,7 +10,7 @@ os.environ['CUDA_VISIBLE_DEVICES']= '12'
 flags = tf.app.flags
 flags.DEFINE_integer("OPER_FLAG", 1, "flag of opertion, test or train")
 flags.DEFINE_string("OPER_NAME", "Experiment_6_21_6", "name of the experiment")
-flags.DEFINE_string("path", '/mnt/sata/jichao/dataset/celeb_id_aligned/', "path of training data")
+flags.DEFINE_string("path", '?', "path of training data")
 flags.DEFINE_integer("batch_size", 4, "size of single batch")
 flags.DEFINE_integer("max_iters", 100000, "number of total iterations for G")
 flags.DEFINE_integer("learn_rate", 0.0001, "learning rate for g and d")
